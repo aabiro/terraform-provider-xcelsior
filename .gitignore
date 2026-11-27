@@ -1,0 +1,19 @@
+# Build output
+/terraform-provider-xcelsior
+/dist/
+
+# Terraform working files from trying the examples
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfvars
+!examples/**/*.tfvars.example
+
+# Credentials never belong here
+.env
+*.pem
+
+.idea/
+.vscode/

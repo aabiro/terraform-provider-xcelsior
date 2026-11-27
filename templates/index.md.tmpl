@@ -1,0 +1,50 @@
+---
+page_title: "Xcelsior Provider"
+description: |-
+  Declare Xcelsior GPU instances, volumes, SSH keys and serverless endpoints.
+---
+
+# Xcelsior Provider
+
+Declare [Xcelsior](https://xcelsior.ca) GPU instances, volumes, SSH keys and
+serverless inference endpoints, and create them with `terraform apply`.
+
+{{ tffile "examples/provider/provider.tf" }}
+
+## Authentication
+
+The provider takes one API token, from `api_token` or the `XCELSIOR_API_TOKEN`
+environment variable. Use an **agent key**: in the dashboard, open
+**Connect MCP**, choose the **CLI** tab and copy the CLI API key. Agent keys
+are revocable on their own, and a spend envelope can be put on one (see below).
+
+With its default permissions an agent key can do everything the provider does,
+with one exception: it can register and delete SSH keys but not list them
+(`ssh:write` without `ssh:read`). With such a key, `xcelsior_ssh_key` keeps
+what it recorded when it registered a key, warns on refresh that it cannot
+check it, and refuses `terraform import`. If you narrow the key's permissions,
+keep the `:read` and `:write` scopes for each resource type you manage.
+
+~> On a machine that runs Xcelsior itself, `XCELSIOR_API_TOKEN` may already be
+set to the server's operator token. Set `api_token` from a variable of your own
+there instead.
+
+## Spend approval
+
+Every launch on Xcelsior goes through a launch plan that must be approved
+before it runs. Under Terraform:
+
+* **Inside the token's spend envelope** (ceilings a person sets on the token),
+  the plan approves itself and `apply` runs unattended.
+* **Outside it**, or with no envelope, the plan waits for a person to approve it
+  in the dashboard, under Launch plans. `apply` waits up to `approval_timeout`
+  (default `0s`: fail at once). If nobody approves in time, the plan is revoked
+  so nothing is left waiting, and `apply` fails with the approval link and the
+  reasons.
+
+`terraform plan` quotes every new instance without creating anything, and warns
+when the launch will need a person. Destroying a resource needs no approval.
+
+See the [spend approval guide](guides/spend-approval.md) for details.
+
+{{ .SchemaMarkdown | trimspace }}
