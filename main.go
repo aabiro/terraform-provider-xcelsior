@@ -22,7 +22,6 @@ func main() {
 	flag.Parse()
 
 	err := providerserver.Serve(context.Background(), provider.New(version), providerserver.ServeOpts{
-		// The registry namespace is not decided yet; see README.
 		Address: "registry.terraform.io/aabiro/xcelsior",
 		Debug:   debug,
 	})

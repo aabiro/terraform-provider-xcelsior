@@ -1,6 +1,9 @@
-# Release build in the layout the Terraform Registry expects. Not wired to
-# anything yet: a release needs a GitHub repository, a GPG key registered with
-# the registry (GPG_FINGERPRINT), and the namespace decided. See README.
+# Release build in the layout the Terraform Registry expects.
+# Namespace: registry.terraform.io/aabiro/xcelsior.
+# .github/workflows/release.yml runs this on a v* tag. draft stays true so the
+# registry does not ingest the release until the maintainer publishes it, and
+# only after an RSA public key is registered for namespace aabiro.
+# GPG_FINGERPRINT comes from the workflow's imported key. See README.
 version: 2
 before:
   hooks:

@@ -114,12 +114,65 @@ TF_ACC=1 XCELSIOR_ACC_ENDPOINT=http://127.0.0.1:9500 \
 
 ## Releasing
 
-Not set up yet. `.goreleaser.yml` and `terraform-registry-manifest.json` follow
-HashiCorp's provider layout, but a registry release also needs a GitHub
-repository, a GPG signing key registered with the Terraform Registry, and a
-decision on the registry namespace (the module path and `main.go` say
-`aabiro`). Each of those is the maintainer's to make.
+The registry address is `registry.terraform.io/aabiro/xcelsior`. The public
+repository is `github.com/aabiro/terraform-provider-xcelsior`. It cannot live
+inside the Xcelsior monorepo: the registry only detects a public repository
+named `terraform-provider-xcelsior`.
+
+`.goreleaser.yml` signs the checksum file. `.github/workflows/release.yml`
+runs GoReleaser when a `v*` tag is pushed, and the GitHub release stays a
+draft. The Terraform Registry ignores drafts. No registry version exists until
+that draft is published, and a published version cannot be replaced.
+
+Before the first tag:
+
+1. Create an RSA key. The registry accepts RSA and DSA, not an ECC or ed25519
+   key, and not the SSH signing key already on the GitHub account.
+
+   ```sh
+   gpg --full-generate-key
+   ```
+
+   Choose `RSA and RSA`, 4096 bits, and the identity
+   `aaryn.alexander@gmail.com`. Set a passphrase and keep it out of chat and
+   out of the repository.
+
+2. Note the long key id:
+
+   ```sh
+   gpg --list-secret-keys --keyid-format LONG
+   ```
+
+3. Export the public key only, and add it at
+   [registry.terraform.io](https://registry.terraform.io) under User Settings,
+   Signing Keys, for namespace `aabiro`:
+
+   ```sh
+   gpg --armor --export aaryn.alexander@gmail.com
+   ```
+
+   Do not add this key to GitHub. GitHub's GPG settings are a different list.
+
+4. On the GitHub repository, authorize the Terraform Registry OAuth app
+   (GitHub Settings, Applications, Authorized OAuth Apps). Then add two
+   Actions secrets, `GPG_PRIVATE_KEY` and `PASSPHRASE`. The private export is:
+
+   ```sh
+   gpg --armor --export-secret-keys aaryn.alexander@gmail.com
+   ```
+
+   Put that block in the secret. Do not commit it and do not paste it into
+   chat.
+
+5. Tag once, for example `v0.1.0`. The workflow writes a draft release. Check
+   the zip files, the manifest, `SHA256SUMS`, and `SHA256SUMS.sig`. Publish
+   that one draft after the public key is on the registry. If verification
+   fails, fix the draft or the registered key. Do not delete the tag and push
+   another `v0.1.0`.
 
 ## License
 
-None chosen yet. Until one is, this code is not licensed for use by others.
+Business Source License 1.1. See [LICENSE](LICENSE). Production use is
+permitted for connecting to the Xcelsior platform. A competing compute
+marketplace needs a separate commercial license. On November 11, 2030 this
+version is licensed under Apache-2.0.
